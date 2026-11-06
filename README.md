@@ -28,11 +28,11 @@ $ cp deps/kss/config/local.config.exs.example config/local/config.exs
 ## Edit config/local/config.exs
 ## Set modules :websocket_manager y :app_supervisor (mandatory)
 
-$ cp -R deps/kss/lib/layout lib/layout
+$ cp -R deps/kss/priv/layout priv/layout
 
 $ git clone https://github.com/mailcmd/kss-js.git
-$ cp kss-js/kss.js lib/layout/js/
-$ cp kss-js/dproxy.js lib/layout/js/
+$ cp kss-js/kss.js priv/layout/js/
+$ cp kss-js/dproxy.js priv/layout/js/
 $ rm -rf kss-js
 $ mkdir -p priv/www
 
@@ -45,4 +45,4 @@ $ iex -S mix
 
 ## Doc 
 
-Sorry, I need time to write this section... 
+Not yet.
