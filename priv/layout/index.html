@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">  
+  <title>#{title}</title>
+
+  #{for css <- css_files do
+    if String.slice(css, 0..3) == "http" do
+      "<link rel='stylesheet' type='text/css' href='#{css}'>"
+    else 
+      "<link rel='stylesheet' type='text/css' href='@#{css}'>"
+    end
+  end |> Enum.join("\n")}
+  <style>
+    body {
+    }
+  </style>     
+</head>
+
+<body>
+  <!-- page start -->
+  #{main}
+  <!-- page end -->
+  <script src="kss-js"></script>
+  #{for js <- js_files do
+    if String.slice(js, 0..3) == "http" do
+      "<script type='text/javascript' src='#{js}'></script>"
+    else 
+      "<script type='text/javascript' src='@#{js}'></script>"
+    end
+  end |> Enum.join("\n")}
+</body>
+
+</html>

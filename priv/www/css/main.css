@@ -1,0 +1,113 @@
+:root {
+    --bgcolor: #181818;
+    --fgcolor: #b1b1b1;
+    --bvc: #00EDFF;
+    --bvca: #00EDFF88;
+}
+
+html {
+    font-size: 16px;
+    font-family: Montserrat;
+    font-feature-settings: normal;
+    font-variation-settings: normal;
+    margin: 0;
+    padding: 0;
+    caret-color: transparent;
+    letter-spacing: 0.3px;
+}
+
+body {
+    display: block ruby;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bgcolor);
+    color: var(--fgcolor);
+    text-align: center;
+}
+
+*[onclick]:hover {
+    cursor: pointer;
+}
+
+input {
+    padding: 6px 0 7px;
+    border: 0;
+    width: calc(100% - 2rem);
+    height: 1.1876em;
+    background: none;
+    box-sizing: content-box;
+    color: white;
+    caret-color: white;
+    border-bottom: 1px solid var(--fgcolor);
+    position: relative;
+    top: -10px;
+    left: 3px;
+}
+
+input:hover {
+    border-width: 2px;
+}
+
+input:focus {
+    outline: none;
+    border-bottom: 2px solid var(--bvc);
+}
+
+label {
+    position: absolute;
+    color: var(--fgcolor);
+    left: 33px;
+    transition-duration: 0.3s;
+    transition-property: all;
+    top: -2px;
+}
+
+label:hover {
+  cursor: text;
+}
+
+input:focus + label, input:not(:placeholder-shown) + label {
+    zoom: 0.7;
+    left: 42px;
+    top: -25px;
+    color: var(--bvc);
+}
+
+input::placeholder {
+    color: currentColor;
+    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+}
+
+a {
+    margin-left: 10px;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--bvc);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+.field {
+    position: relative;
+    margin-bottom: 2.7rem;
+}
+
+.bold {
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: Montserrat;
+}
+
+.highlight:hover {
+    background-color: #fff2;
+}

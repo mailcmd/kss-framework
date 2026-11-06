@@ -1,0 +1,26 @@
+import Config
+
+config :kss, :local_config,
+    app_supervisor: CORD.DummySupervisor,
+    websocket_manager: CORD.DummyManager,
+    events_pop_interval: 5_000,
+    https: false,
+    # keyfile: "/var/www//spi.cvci.com.ar/privkey1.pem",
+    # certfile: "/var/www//spi.cvci.com.ar/fullchain1.pem",
+    # port: 8080,
+    # https_port: 8443,
+    # http_server_id: "VPHS v1.1",
+    api_user_pass: "", # user:pass
+    title: "My CORD APP",
+    main_file: "main.html",
+    favicon: "imgs/favicon.ico",
+    css_files: [
+      "css/main.css"
+    ],
+    js_files: [
+      "js/main.js"
+    ],
+    external_interpreters: [
+      # {:php, "/var/www/git/spi60-git/spiv6/smi", "smi", &PHP.Controller.run/5}
+      {:php, "deps/php_ex/test/", "/smi/", &PHP.Controller.run/5}
+    ]

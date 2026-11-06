@@ -1,0 +1,20 @@
+const ROWS = 12, COLS = 28;
+
+sandbox.datas = {
+    table: [...Array(ROWS).keys()].map( r =>
+        [...Array(COLS).keys().map(c => [{c: '', v: r}][0])]
+    ),
+    change: function() {
+        const r = Math.trunc(Math.random()*ROWS);
+        const c = Math.trunc(Math.random()*COLS);
+        this.table[r][c] = {c: 'filled', v: +(Math.random()*9).toFixed(0)};
+        setTimeout(()=>{
+            this.table[r][c].c = '';
+        }, 500);
+        setTimeout(()=>this.change(), 500);
+    }
+};
+sandbox.preload_tpls = ['index.html'];
+sandbox.tpl_id = 'table';
+sandbox.name = 'main';
+sandbox.target = document.querySelector('#main');

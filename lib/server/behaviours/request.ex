@@ -1,0 +1,66 @@
+defmodule KSS.Request do
+  defmacro __using__(_opts) do
+    quote do
+      import Plug.Conn
+      import unquote(__MODULE__)
+      require Logger
+      @http_config Application.compile_env(:kss, :http)
+      @http_server_id Application.compile_env(
+                        :kss,
+                        [:local_config, :http_server_id],
+                        @http_config[:http_server_id]
+                      )
+
+    end
+  end
+  
+  defmacro request(fun, do: block) do
+    quote do
+      def unquote(fun)(var!(conn), var!(params)) do
+        _ = var!(params)
+        var!(conn) = put_resp_header(var!(conn), "server", @http_server_id)
+        unquote(block)
+      end
+    end
+  end
+
+  defmacro request(:get, fun, do: block) do
+    quote do
+      def unquote(fun)(%{method: "GET"} = var!(conn), var!(params)) do
+        _ = var!(params)
+        var!(conn) = put_resp_header(var!(conn), "server", @http_server_id)
+        unquote(block)
+      end
+    end
+  end
+
+  defmacro request(:post, fun, do: block) do
+    quote do
+      def unquote(fun)(%{method: "POST"} = var!(conn), var!(params)) do
+        _ = var!(params)
+        var!(conn) = put_resp_header(var!(conn), "server", @http_server_id)
+        unquote(block)
+      end
+    end
+  end
+
+  defmacro response(response_text, code \\ 200) do
+    quote do
+      var!(conn)
+      |> assign(:text, unquote(response_text))
+      |> assign(:code, unquote(code))
+    end
+  end
+
+  defmacro response_type(type) do
+    quote do
+      var!(conn) = put_resp_content_type(var!(conn), unquote(type))
+    end
+  end
+  
+  defmacro response_header(key, value) do
+    quote do
+      var!(conn) = put_resp_header(var!(conn), to_string(unquote(key)), unquote(value))
+    end
+  end
+end
