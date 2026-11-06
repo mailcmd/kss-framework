@@ -18,7 +18,7 @@ $ mix new <app_name>
 $ cd <app_name>
 
 ## Edit your mix.exs and add in deps:
-## {:kss, git: "https://github.com/mailcmd/kss-framework.git"}
+## {:kss, git: "http://gitlab.vianet.com.ar:3000/msante/kss-framework.git"}
 
 $ mix deps.get
 $ mkdir -p config/local
@@ -28,7 +28,7 @@ $ cp deps/kss/config/local.config.exs.example config/local/config.exs
 ## Edit config/local/config.exs
 ## Set modules :websocket_manager y :app_supervisor (mandatory)
 
-$ cp -R deps/kss/priv/layout priv/layout
+$ cp -R deps/kss/priv/layout priv/
 
 $ git clone https://github.com/mailcmd/kss-js.git
 $ cp kss-js/kss.js priv/layout/js/
