@@ -475,6 +475,7 @@ function KSS(object, root_element) {
     this.ins = deep_proxy.ins;
     this.deep_proxy = deep_proxy;
     this.render_key = render_by_key;
+    this.render_elem = render_by_elem;
     this.run = kss_run;
 }
 
@@ -533,7 +534,7 @@ KSS.include = async function(module) {
         // if we need to load templates before, we do it
         const preload_tpls = mod.preload_tpls ?? [];
         for (let tpl of preload_tpls) {
-            if (tpl.match(/\//)) {
+            if ((/\//).test(tpl)) {
                 await KSS.loadtpl(tpl);
             } else {
                 tpl = module.split('/').slice(0, -1).join('/') + '/' + tpl;    

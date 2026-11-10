@@ -42,7 +42,7 @@ defmodule KSS.Webserver do
   # KSS Client JS and fixed content
   ###################################################################################
   get "/kss-js" do
-    kss_js = File.read!("priv/layout/js/dproxy.js") <> File.read!("priv/layout/js/kss.js")
+    kss_js = File.read!("priv/layout/js/kss.js")
     conn
     |> assign(:init_options, opts)
     |> put_resp_content_type("text/javascript")

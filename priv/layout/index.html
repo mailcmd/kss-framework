@@ -21,7 +21,7 @@
   <!-- page start -->
   #{main}
   <!-- page end -->
-  <script src="kss-js"></script>
+  <script src="kss-js" load="bundle"></script>
   #{for js <- js_files do
     if String.slice(js, 0..3) == "http" do
       "<script type='text/javascript' src='#{js}'></script>"
