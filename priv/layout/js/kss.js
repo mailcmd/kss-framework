@@ -1,10 +1,13 @@
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+document.currentScript.async = false;
+
 Object.defineProperty(Array.prototype, 'remove', {
     value: function(i) {return this.splice(i, 1)},
     enumerable: false
 });
 
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
 function KSS(object, root_element) {
@@ -16,15 +19,15 @@ function KSS(object, root_element) {
     // GETs
     ////////////////////////////////////////////////////////////////////////////////////////
     const get_foreachs = function(elem) {
-        return elem.querySelectorAll(':not(template) [\\:foreach]:not(template)');
+        return elem.querySelectorAll(':scope [\\:foreach]:not(template):not(template):not(kss-sandbox):not(:scope kss-sandbox *)');
     };
     
     const get_ifs = function(elem) {
-        return elem.querySelectorAll(':not(template) [\\:if]:not(template)');
+        return elem.querySelectorAll(':scope [\\:if]:not(template):not(template):not(kss-sandbox):not(:scope kss-sandbox *)');
     };
     
     const get_attributes = function(elem) {
-        return [elem, ...elem.querySelectorAll(':not(template) *')].map( el => {
+        return [elem, ...elem.querySelectorAll(':scope *:not(template):not(kss-sandbox):not(:scope kss-sandbox *)')].map( el => {
             return Object.values(el.attributes)
                 .filter(a => {
                     return (
@@ -37,7 +40,7 @@ function KSS(object, root_element) {
     };
     
     const get_texts = function(elem) {
-        return elem.querySelectorAll(':not(template) text');
+        return elem.querySelectorAll(':scope text:not(:scope kss-sandbox *)');
     };
     
     const get_text_nodes = function(elem) {
@@ -147,6 +150,8 @@ function KSS(object, root_element) {
         tpl.setAttribute(':foreach', loopvar);
         elem.removeAttribute(':foreach');
         elem.removeAttribute(':as');
+        const force_key = elem.getAttribute(':force-key');
+        elem.removeAttribute(':force-key');
         tpl.innerHTML = elem.outerHTML;
         elem.before(tpl);
         elem.remove();
@@ -157,6 +162,15 @@ function KSS(object, root_element) {
             context: context,
             item: tpl.getAttribute(':as')
         });
+        if (force_key) {
+            kss_push(_this.renderizable_objects, force_key, {
+                type: 'foreach',
+                elem: tpl,
+                parent: parent,
+                context: context,
+                item: tpl.getAttribute(':as')
+            });
+        }
     };
 
     const process_if = function(elem, parent, context) {
@@ -178,6 +192,8 @@ function KSS(object, root_element) {
         if_tpl.setAttribute(':if', expr);
         elem.removeAttribute(':if');
         elem.removeAttribute(':else-ref');
+        const force_key = elem.getAttribute(':force-key');
+        elem.removeAttribute(':force-key');
         if_tpl.innerHTML = elem.outerHTML;
         elem.before(if_tpl);
         keys.forEach( key => {
@@ -189,6 +205,15 @@ function KSS(object, root_element) {
                 value: 'true'
             });
         });
+        if (force_key) {
+            kss_push(_this.renderizable_objects, force_key, {
+                type: 'if',
+                elem: if_tpl,
+                parent: parent,
+                context: context,
+                value: 'true'
+            });
+        }
         elem.remove();
         
         if (else_ref) {
@@ -207,6 +232,15 @@ function KSS(object, root_element) {
                     value: 'false'
                 });
             });
+            if (force_key) {
+                kss_push(_this.renderizable_objects, force_key, {
+                    type: 'if',
+                    elem: else_tpl,
+                    parent: parent,
+                    context: context,
+                    value: 'false'
+                });
+            }
             elem.remove();
         }
         
@@ -236,10 +270,24 @@ function KSS(object, root_element) {
                 context: context
             });
         });
+        const force_key = attr.elem.getAttribute(':force-key');
+        if (force_key) {
+            [...keys].forEach( key => {
+                kss_push(_this.renderizable_objects, force_key, {
+                    type: 'attr',
+                    elem: attr.elem,
+                    attr: attr.attr,
+                    expr: attr.value,
+                    parent: parent,
+                    context: context
+                });
+            });
+        }
     };
     
     const process_text = function(elem, parent, context) {
         let expr = elem.getAttribute(':content');
+        elem.removeAttribute(':content');
         expr = expr.match(/\{(.+\})/) ? expr : '{'+expr.trim()+'}';
 
         const keys = new Set();
@@ -263,6 +311,18 @@ function KSS(object, root_element) {
                 expr: expr
             });
         });
+        const force_key = elem.getAttribute(':force-key');
+        if (force_key) {
+            [...keys].forEach( key => {
+                kss_push(_this.renderizable_objects, force_key, {
+                    type: 'text',
+                    elem: elem,
+                    parent: parent,
+                    context: context,
+                    expr: expr
+                });
+            });
+        }
     };
     
     const process_bind = function(elem, parent, context) {
@@ -312,7 +372,7 @@ function KSS(object, root_element) {
                 refresh(el, iterator_key+'.'+i);
             }
         } catch(e) {
-            console.warn(`KSS_ERROR: '${iterator}' key is not an iterable object`);
+            console.warn(`KSS_ERROR: Problems at rendering foreach '${loopvar}' (${e.message})`);
         }
     };
     
@@ -456,11 +516,20 @@ function KSS(object, root_element) {
     };
     
     ///////////////////////////////////////////////////////////////////////////////////////
-    this.init = function() {
-        refresh(this.sandboxed_element, '');
-        if (this.sandboxed_element.oninit) {
-            this.sandboxed_element.oninit.bind(this.deep_proxy)();
+    this.init = function(force = false) {
+        if (!this.sandboxed_element.isConnected) return;
+        if (!this.initialized || force) {
+            refresh(this.sandboxed_element, '');
+            if (this.sandboxed_element.oninit) {
+                this.sandboxed_element.oninit.bind(this.deep_proxy)();
+            }
+            this.initialized = true;
         }
+    };
+    
+    this.append_to = function(el) {
+        el.append(this.sandboxed_element);
+        this.init(true);
     };
 
     this.sandboxed_element = root_element;
@@ -477,6 +546,7 @@ function KSS(object, root_element) {
     this.render_key = render_by_key;
     this.render_elem = render_by_elem;
     this.run = kss_run;
+    this.initialized = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -521,14 +591,15 @@ KSS.loadtpl = async function(template, name = undefined) {
     return true;
 };
 
-KSS.include = async function(module) {
+KSS.include = async function(module, config = {}) {
+    if (module.slice(-3) != '.js') module += '.js';
     try {
         const js = `
-        (function(){
+        (function(config){
         const sandbox = {};
         ${await KSS.fetch(module)}
         return sandbox;
-        })();
+        })(config);
         `;
         const mod = eval(js);
         // if we need to load templates before, we do it
@@ -553,6 +624,8 @@ KSS.include = async function(module) {
     }
 };
 
+KSS.loadmod = KSS.include;
+
 KSS.add_sandbox = function(name, data_object, elem) {
     let root_elem;
     if (typeof(elem) == 'string') {
@@ -566,20 +639,20 @@ KSS.add_sandbox = function(name, data_object, elem) {
         root_elem = document.createElement('kss-sandbox');
         root_elem.setAttribute('kss-id', name);
         root_elem.append(tpl.cloneNode(true).content);
-        elem.target.append(root_elem);
+        if (elem.target) elem.target.append(root_elem);
     } else if (elem?.html) {
         root_elem = document.createElement('kss-sandbox');
         root_elem.setAttribute('kss-id', name);
         root_elem.innerHTML = elem.html;
-        elem.target.append(root_elem);
+        if (elem.target) elem.target.append(root_elem);
     } else {
         root_elem = elem;
     }
 
-    if (!root_elem.isConnected || !root_elem?.querySelectorAll) {
-        console.warn(`KSS_ERROR: Sandbox '${name}': '${elem}' is not a reference to a valid DOM element!`, elem);
-        return;
-    }
+    // if (!root_elem.isConnected || !root_elem?.querySelectorAll) {
+    //     console.warn(`KSS_ERROR: Sandbox '${name}': '${elem}' is not a reference to a valid DOM element!`, elem);
+    //     return;
+    // }
     root_elem.oninit = elem.oninit;
     
     KSS.sandboxes[name] = {
@@ -588,6 +661,7 @@ KSS.add_sandbox = function(name, data_object, elem) {
         data_object: data_object,
         elem: root_elem
     };
+    KSS.sandboxes[name].sb.init();
 };
 
 KSS.run = function(attr, elem) {
@@ -600,7 +674,8 @@ KSS.get = function(name) {
 };
 
 KSS.getSandbox = function(name) {
-    return KSS.sandboxes[name].sb;
+    if (KSS.sandboxes[name]) return KSS.sandboxes[name].sb;
+    console.warn(`KSS_ERROR: Does not exists a sandbox named '${name}'!`);
 };
 
 KSS.init = function() {
@@ -609,6 +684,7 @@ KSS.init = function() {
     window.dispatchEvent(kssReadyEvent);
 };
 
+KSS.ready = KSS.init;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Statics for websocket 
@@ -723,3 +799,13 @@ KSS.connect = function(config) {
     KSS.connection = conn;
     return conn;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Before to go ahead, if bundle load is enabled, load dproxy auxiliar library.
+
+if (document.currentScript.getAttribute('load') == 'bundle') {
+    const dproxy = document.createElement('SCRIPT'); 
+    dproxy.async = false;
+    dproxy.src = document.currentScript.src.replace('kss.js', 'dproxy.js');
+    document.currentScript.before(dproxy);
+}
